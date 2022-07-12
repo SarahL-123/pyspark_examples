@@ -1,82 +1,42 @@
-# before running this, don't forget to conda activate pysparkexample
 import pyspark
-
-# These don't really work well with VScode (the autocomplete doesn't work properly?)
-# so I just imported them directly
 from pyspark.sql import functions as f
 from pyspark.sql import DataFrame
 
-class PySparkExamples:
-    
-    def __init__(self):
-        # Creates a 'session', which we will use for everything
-        self.spark = (
-            pyspark
-            .sql
-            .SparkSession
-            .builder
-            .appName("myFirstSparkSession")
-            .getOrCreate()
-        )
+from interfaces import IPySparkExample
+
+class DataCleaningExample(IPySparkExample):
         
     def run_examples(self):
         "Runs all the examples, printing something out each step"
         
         # Creates spark DF from CSV (you can also do it from pandas DF)
-        sparkdf = self._create_sparkdf()
+        sparkdf = self.create_sparkdf()
         
         # changes ID to integer (normally, don't do this! But just for our example)
         sparkdf = self._change_dtypes(sparkdf)
 
         # Adds values to spark DF
         self._add_rows(sparkdf)
-        # This prints the first n (default 20) rows of the dataframe
-        # I put it after every method, so we can see what's happening
-        sparkdf.show()
         
         # Removes values from spark DF
         sparkdf = self._remove_rows(sparkdf)
-        sparkdf.show()
         
         # this shows some stuff 
         self._byvalue_or_reference(sparkdf)
-        sparkdf.show()
         
         # adds 123 as a column (as int)
         sparkdf = self._addcolumn_constant(sparkdf)
-        sparkdf.show()
         
         sparkdf = self._udf_apply(sparkdf)
-        sparkdf.show()
         
         sparkdf = self._udf_apply_multicolumn(sparkdf)
-        sparkdf.show()
 
         self._summarystats(sparkdf)
         self._groupby_get_simple_stats(sparkdf)
 
-        print("done!")
-        
+        print("Done")
 
-    def _create_sparkdf(self):
-        """
-        Gets some data, creates a spark DF.
-        The data is just fake data from https://www.mockaroo.com/
-        """
-        
-        # How to specify delimiters and header/no header
-        sparkdf = (
-            self.spark.read
-            .option("delimiter", ",")
-            .option("header", "true")
-            .csv("./MOCK_DATA.csv")
-        )
-        return sparkdf
-
-        # How to load from pandas DF instead of CSV
-        # sparkdf = self.spark.createDataFrame(pandas_df)
-        # return sparkdf
-
+    @IPySparkExample._show_spark_df()
     def _change_dtypes(self, sparkdf: DataFrame):
         """
         The ID is a string
@@ -95,6 +55,7 @@ class PySparkExamples:
         print(sparkdf.dtypes)
         return sparkdf
     
+    @IPySparkExample._show_spark_df()
     def _add_rows(
         self,
         sparkdf: DataFrame,
@@ -124,6 +85,7 @@ class PySparkExamples:
 
         return appended
 
+    @IPySparkExample._show_spark_df()
     def _remove_rows(
         self,
         sparkdf: DataFrame, # check out type hints
@@ -150,6 +112,7 @@ class PySparkExamples:
         
         return sparkdf
     
+
     def _byvalue_or_reference(
         self,
         sparkdf: DataFrame
@@ -166,7 +129,7 @@ class PySparkExamples:
             "id != 1"
         )
         
-        
+    @IPySparkExample._show_spark_df()
     def _addcolumn_constant(
         self,
         sparkdf: DataFrame
@@ -178,6 +141,7 @@ class PySparkExamples:
         )
         return sparkdf
         
+    @IPySparkExample._show_spark_df()
     def _udf_apply(self, sparkdf: DataFrame):
         """
         A UDF (User Defined Function) is basically pandas apply, to each row.
@@ -213,6 +177,7 @@ class PySparkExamples:
         
         return sparkdf
     
+    @IPySparkExample._show_spark_df()
     def _udf_apply_multicolumn(self, sparkdf: DataFrame):
         """
         Another UDF, but this one uses multiple columns to create a new column.
@@ -294,21 +259,6 @@ class PySparkExamples:
 
         results_df.show()
 
-    
-
-        
-
-
-    
-    
-# TODO
-# Group by and do some custom stuff
-# make more than 1 dataframe, and join them?
-# window functions
-# How to use sklearn and/or 
-
-
-
 if __name__ == '__main__':
-    examples = PySparkExamples()
-    examples.run_examples()
+    example = DataCleaningExample("myFirstSparkSession")
+    example.run_examples()
